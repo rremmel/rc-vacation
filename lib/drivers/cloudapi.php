@@ -4,23 +4,59 @@
 function vacation_read(array &$data) {
 	$rcmail = rcmail::get_instance();
 	
-	$cldClient = new RestRequest($rcmail->config->get("cloudapi_endpoint"."/".$rcmail->user->get_username()), "POST", $rBody);
+	$cldClient = new RestRequest($rcmail->config->get("vacation_endpoint")."/".$rcmail->user->get_username(), "GET");
 	$cldClient->setUsername($rcmail->config->get("cloudapi_username"));
 	$cldClient->setPassword($rcmail->config->get("cloudapi_password"));
 	
 	$cldClient->execute();
-	
-	$data  = $cldClient->getResponseInfo();
+
+/*
+ * 
+ *  - username : string, username or email (get).
+ - email : string, email of the user if username is a full email (get/set).
+ - email_local : string, email local part if username is a full email (get/set).
+ - email_domain : string, email domain if username is a full email (get/set).
+ - vacation_enable : boolean, flag to enable/disable the vacation message
+   (get/set).
+ - vacation_start : integer, timestamp/date of the vacation start (get/set)
+ - vacation_end : integer, timestamp/date of the vacation end (get/set)
+ - vacation_subject : string, subject of the vacation message (get/set).
+ - vacation_message : string, message of the vacation (get/set).
+ - vacation_keepcopyininbox, boolean, flag to enable/disable the vacation keep
+   copy in inbox flag (get/set).
+ - vacation_forwarder : string, forward address of the vacation (get/set).
+ * 
+ */
+
+	//$responseBody = $cldClient->getResponseBody();
+	//$data['vacation_subject'] = $responseBody['vacation_subject'];
+	$data  = json_decode($cldClient->getResponseBody(), true);
 	
 	return PLUGIN_SUCCESS;
 }
+	function log_error($code, $message) {
+		rcmail::raise_error(array(
+		'code' => $code, 'type' => 'php',
+		'file' => __FILE__, 'line' => __LINE__,
+		'message' => $message),
+		true, true);
+	}
 
 
 function vacation_write(array &$data) {
+	$rcmail = rcmail::get_instance();
 	
+	$cldClient = new RestRequest($rcmail->config->get("vacation_endpoint")."/".$rcmail->user->get_username(), "PUT", $data);
+	$cldClient->setUsername($rcmail->config->get("cloudapi_username"));
+	$cldClient->setPassword($rcmail->config->get("cloudapi_password"));
+	
+	$cldClient->execute();
+
+//	log_error(600, json_encode($cldClient->getResponseBody()));
+
 	return PLUGIN_SUCCESS;
 }
-
+/*
 class RestRequest
 {
 	protected $url;
@@ -245,5 +281,5 @@ class RestRequest
 	}
 }
 
-
+*/
 ?>
